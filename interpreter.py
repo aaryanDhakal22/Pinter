@@ -1,5 +1,13 @@
 from token import Token
 
+operations = [
+    "ADD",
+    "SUB",
+    "MUL",
+    "DIV",
+    "INDIV",
+]
+
 
 class Interpreter:
     def __init__(self, text):
@@ -71,35 +79,36 @@ class Interpreter:
             self.advance()
         return int(result)
 
+    def term(self):
+        token = self.current_token
+        self.eat("INTEGER")
+        return token.attribute_value
+
     def expr(self):
         self.current_token = self.get_next_token()
 
-        left = self.current_token
-        self.eat("INTEGER")
+        result = self.term()
 
-        op = self.current_token
-        if op.token_name == "ADD":
-            self.eat("ADD")
-        elif op.token_name == "MUL":
-            self.eat("MUL")
-        elif op.token_name == "DIV":
-            self.eat("DIV")
-        elif op.token_name == "SUB":
-            self.eat("SUB")
-        elif op.token_name == "INDIV":
-            self.eat("INDIV")
+        while self.current_token.token_name in operations:
+            op = self.current_token
+            if op.token_name == "ADD":
+                self.eat("ADD")
+                result += self.term()
 
-        right = self.current_token
-        self.eat("INTEGER")
-        if op.token_name == "ADD":
-            result = left.attribute_value + right.attribute_value
-        elif op.token_name == "SUB":
-            result = left.attribute_value - right.attribute_value
-        elif op.token_name == "MUL":
-            result = left.attribute_value * right.attribute_value
-        elif op.token_name == "DIV":
-            result = left.attribute_value / right.attribute_value
-        elif op.token_name == "INDIV":
-            result = left.attribute_value // right.attribute_value
+            elif op.token_name == "MUL":
+                self.eat("MUL")
+                result *= self.term()
+
+            elif op.token_name == "DIV":
+                self.eat("DIV")
+                result /= self.term()
+
+            elif op.token_name == "SUB":
+                self.eat("SUB")
+                result -= self.term()
+
+            elif op.token_name == "INDIV":
+                self.eat("INDIV")
+                result = result // self.term()
 
         return result
